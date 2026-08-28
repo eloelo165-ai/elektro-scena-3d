@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ELEKTRO SCENA — Wizualizacja 3D</title>
+<title>ELEKTRO SCENA — Wizualizacja 3D Profesjonalna</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { 
     width: 100vw;
     height: 100vh;
     overflow: hidden; 
-    background: #f0f0f0; 
+    background: #1a1a1a; 
     font-family: Arial, sans-serif; 
   }
   #info {
@@ -18,27 +18,29 @@
     top: 20px; 
     left: 20px; 
     z-index: 10;
-    background: rgba(255,255,255,0.97);
+    background: rgba(0,0,0,0.8);
     padding: 20px 24px; 
     border-radius: 10px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    border: 1px solid #444;
     pointer-events: none; 
     user-select: none;
-    max-width: 400px;
+    max-width: 450px;
   }
   #info h1 { 
-    margin: 0 0 10px; 
-    font-size: 18px; 
+    margin: 0 0 12px; 
+    font-size: 20px; 
     font-weight: bold;
-    letter-spacing: 0.5px; 
-    color: #000; 
+    letter-spacing: 1px; 
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff; 
   }
   #info p { 
-    margin: 6px 0; 
-    font-size: 12px; 
-    color: #555; 
+    margin: 8px 0; 
+    font-size: 13px; 
+    color: #aaa; 
     line-height: 1.7; 
   }
+  #info strong { color: #00ff00; }
   #canvas { 
     display: block;
     width: 100%;
@@ -51,8 +53,9 @@
 <div id="info">
   <h1>⚡ ELEKTRO SCENA 3D</h1>
   <p><strong>Wymiary:</strong> 10m × 30m | Podest: 1.3m | Rig: 12m</p>
-  <p><strong>Elementy:</strong> LED front 10×4m + boki | Truss | Oświetlenie</p>
-  <p><strong>Sterowanie:</strong> Myszy = obrót | Scroll = zoom</p>
+  <p><strong>LED:</strong> Front 10×4m (RGB) + Boki 3.5×3.5m</p>
+  <p><strong>Oświetlenie:</strong> 12x PAR + Halogeny + Efekty</p>
+  <p><strong>Sterowanie:</strong> LPM = obrót | Scroll = zoom | PPM = pan</p>
 </div>
 <canvas id="canvas"></canvas>
 
@@ -60,59 +63,113 @@
 <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-// SCENE SETUP
+// ===== SCENE SETUP =====
 const canvas = document.getElementById('canvas');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf0f0f0);
-scene.fog = new THREE.Fog(0xf0f0f0, 100, 150);
+scene.background = new THREE.Color(0x0a0a0a);
+scene.fog = new THREE.Fog(0x0a0a0a, 80, 150);
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
-camera.position.set(25, 16, 28);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 300);
+camera.position.set(35, 18, 35);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 5, -2);
+controls.target.set(0, 6, 0);
 controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.maxPolarAngle = Math.PI / 2 - 0.05;
+controls.dampingFactor = 0.06;
+controls.maxPolarAngle = Math.PI / 2 - 0.1;
+controls.minDistance = 15;
+controls.maxDistance = 80;
 
-// LIGHTING
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+// ===== LIGHTING =====
+const ambientLight = new THREE.AmbientLight(0x4a4a6a, 0.6);
 scene.add(ambientLight);
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
-dirLight.position.set(-12, 28, 18);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight.position.set(-20, 35, 25);
 dirLight.castShadow = true;
-dirLight.shadow.mapSize.width = 2048;
-dirLight.shadow.mapSize.height = 2048;
+dirLight.shadow.mapSize.width = 4096;
+dirLight.shadow.mapSize.height = 4096;
 dirLight.shadow.camera.near = 0.5;
-dirLight.shadow.camera.far = 80;
-dirLight.shadow.camera.left = -25;
-dirLight.shadow.camera.right = 25;
-dirLight.shadow.camera.top = 30;
-dirLight.shadow.camera.bottom = -15;
-dirLight.shadow.bias = -0.0008;
+dirLight.shadow.camera.far = 100;
+dirLight.shadow.camera.left = -40;
+dirLight.shadow.camera.right = 40;
+dirLight.shadow.camera.top = 40;
+dirLight.shadow.camera.bottom = -20;
+dirLight.shadow.bias = -0.0012;
 scene.add(dirLight);
 
-const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
-fillLight.position.set(15, 12, -8);
-scene.add(fillLight);
+// Światło boczne (stage left)
+const sideLight1 = new THREE.DirectionalLight(0xff00ff, 0.4);
+sideLight1.position.set(-30, 15, 0);
+scene.add(sideLight1);
 
-// MATERIALS
-const matPodest = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.85, metalness: 0.05 });
-const matDark = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.8, metalness: 0.15 });
-const matLED = new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.3, metalness: 0.3 });
-const matTruss = new THREE.MeshStandardMaterial({ color: 0xd8d8d8, roughness: 0.6, metalness: 0.2 });
-const matMetal = new THREE.MeshStandardMaterial({ color: 0xb0b0b0, roughness: 0.5, metalness: 0.4 });
+// Światło boczne (stage right)
+const sideLight2 = new THREE.DirectionalLight(0x00ffff, 0.3);
+sideLight2.position.set(30, 15, 0);
+scene.add(sideLight2);
 
-const edgeMat = new THREE.LineBasicMaterial({ color: 0x333333, linewidth: 1 });
+// ===== MATERIALS =====
+const matStage = new THREE.MeshStandardMaterial({ 
+  color: 0x2a2a2a, 
+  roughness: 0.8, 
+  metalness: 0.1,
+  map: null
+});
 
-// HELPER FUNCTION
+const matTruss = new THREE.MeshStandardMaterial({ 
+  color: 0xb0b0b0, 
+  roughness: 0.5, 
+  metalness: 0.6 
+});
+
+const matLEDpanel = new THREE.MeshStandardMaterial({ 
+  color: 0x1a1a1a, 
+  roughness: 0.2, 
+  metalness: 0.4,
+  emissive: 0x222222,
+  emissiveIntensity: 0.3
+});
+
+const matReflector = new THREE.MeshStandardMaterial({
+  color: 0x404040,
+  roughness: 0.3,
+  metalness: 0.7
+});
+
+const matLensYellow = new THREE.MeshStandardMaterial({
+  color: 0xffdd00,
+  roughness: 0.1,
+  metalness: 0.8,
+  emissive: 0xffdd00,
+  emissiveIntensity: 0.6
+});
+
+const matLensRGB = new THREE.MeshStandardMaterial({
+  color: 0xff00ff,
+  roughness: 0.15,
+  metalness: 0.7,
+  emissive: 0xff00ff,
+  emissiveIntensity: 0.5
+});
+
+const matBarrier = new THREE.MeshStandardMaterial({
+  color: 0x8b4513,
+  roughness: 0.9,
+  metalness: 0.05
+});
+
+const edgeMat = new THREE.LineBasicMaterial({ color: 0x666666, linewidth: 2 });
+
+// ===== HELPER FUNCTIONS =====
 function createBox(w, h, d, material, x, y, z, parent = scene) {
   const geo = new THREE.BoxGeometry(w, h, d);
   const mesh = new THREE.Mesh(geo, material);
@@ -128,97 +185,218 @@ function createBox(w, h, d, material, x, y, z, parent = scene) {
   return mesh;
 }
 
-// GRID & GROUND
-const gridHelper = new THREE.GridHelper(50, 50, 0xcccccc, 0xe8e8e8);
+function createCylinder(radiusTop, radiusBottom, height, material, x, y, z, parent = scene) {
+  const geo = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 16);
+  const mesh = new THREE.Mesh(geo, material);
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+
+// ===== GROUND / GRID =====
+const gridHelper = new THREE.GridHelper(60, 60, 0x333333, 0x1a1a1a);
 gridHelper.position.y = 0.02;
 scene.add(gridHelper);
 
-const planeGeo = new THREE.PlaneGeometry(80, 80);
-const planeMat = new THREE.ShadowMaterial({ opacity: 0.12 });
-const plane = new THREE.Mesh(planeGeo, planeMat);
-plane.rotation.x = -Math.PI / 2;
-plane.position.y = 0.01;
-plane.receiveShadow = true;
-scene.add(plane);
+const groundPlane = new THREE.Mesh(
+  new THREE.PlaneGeometry(100, 100),
+  new THREE.ShadowMaterial({ opacity: 0.3 })
+);
+groundPlane.rotation.x = -Math.PI / 2;
+groundPlane.position.y = 0.01;
+groundPlane.receiveShadow = true;
+scene.add(groundPlane);
 
-// PODIUM 10 x 30 x 1.3 m
-createBox(10, 1.3, 30, matPodest, 0, 0.65, 0);
+// ===== STAGE PODIUM 10 x 30 x 1.3 m =====
+createBox(10, 1.3, 30, matStage, 0, 0.65, 0);
 
-// FRONT LED 10 x 4 m
-createBox(10, 4, 0.2, matLED, 0, 1.3 + 2, -15.1);
-createBox(0.3, 4.2, 0.3, matDark, -4.9, 1.3 + 2.1, -14.8);
-createBox(0.3, 4.2, 0.3, matDark, 4.9, 1.3 + 2.1, -14.8);
+// Podium edge detail
+createBox(10.2, 0.05, 30.2, new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.8, roughness: 0.3 }), 0, 1.3, 0);
 
-// SIDE LEDs 3.5 x 3.5 m
-createBox(0.15, 3.5, 3.5, matLED, -5.08, 1.3 + 1.75, -12.75);
-createBox(0.15, 3.5, 3.5, matLED, 5.08, 1.3 + 1.75, -12.75);
-createBox(0.25, 0.3, 3.5, matMetal, -5.08, 1.3 + 3.8, -12.75);
-createBox(0.25, 0.3, 3.5, matMetal, 5.08, 1.3 + 3.8, -12.75);
+// ===== FRONT LED PANEL 10 x 4 m =====
+// Główny panel LED
+const ledFrontGeo = new THREE.BoxGeometry(10, 4, 0.25);
+const ledFrontMat = new THREE.MeshStandardMaterial({
+  color: 0x000000,
+  roughness: 0.2,
+  metalness: 0.3,
+  emissive: 0x440044,
+  emissiveIntensity: 0.7
+});
+const ledFront = new THREE.Mesh(ledFrontGeo, ledFrontMat);
+ledFront.position.set(0, 1.3 + 2, -15.15);
+ledFront.castShadow = true;
+ledFront.receiveShadow = true;
+scene.add(ledFront);
 
-// TOP RIG TRUSS 12 m
+// LED Pixele - warstwy kolorowe
+for (let row = 0; row < 8; row++) {
+  for (let col = 0; col < 10; col++) {
+    const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff];
+    const randColor = colors[Math.floor(Math.random() * colors.length)];
+    const pixelMat = new THREE.MeshStandardMaterial({
+      color: randColor,
+      emissive: randColor,
+      emissiveIntensity: 0.4,
+      metalness: 0.2,
+      roughness: 0.3
+    });
+    const pixel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.9, 0.45, 0.05),
+      pixelMat
+    );
+    pixel.position.set(
+      -4.5 + col * 1,
+      1.3 + 0.3 + row * 0.5,
+      -15.1
+    );
+    scene.add(pixel);
+  }
+}
+
+// Wsparcie LED - truss
+createBox(0.4, 4.5, 0.4, matTruss, -5.1, 1.3 + 2.25, -14.5);
+createBox(0.4, 4.5, 0.4, matTruss, 5.1, 1.3 + 2.25, -14.5);
+
+// ===== SIDE LEDs 3.5 x 3.5 m (RGB) =====
+// Lewy panel
+const ledLeftMat = new THREE.MeshStandardMaterial({
+  color: 0x000000,
+  emissive: 0xff0000,
+  emissiveIntensity: 0.6
+});
+createBox(0.2, 3.5, 3.5, ledLeftMat, -5.15, 1.3 + 1.75, -12.75);
+
+// Prawy panel
+const ledRightMat = new THREE.MeshStandardMaterial({
+  color: 0x000000,
+  emissive: 0x00ff00,
+  emissiveIntensity: 0.6
+});
+createBox(0.2, 3.5, 3.5, ledRightMat, 5.15, 1.3 + 1.75, -12.75);
+
+// Wsparcie boczne
+createBox(0.3, 0.3, 3.7, matTruss, -5.15, 1.3 + 3.9, -12.75);
+createBox(0.3, 0.3, 3.7, matTruss, 5.15, 1.3 + 3.9, -12.75);
+
+// ===== TOP RIG TRUSS 12 m =====
 const rigHeight = 12;
-createBox(10.4, 0.9, 20, matTruss, 0, rigHeight, -1);
+createBox(10.6, 1, 21, matTruss, 0, rigHeight, -1);
 
+// Główne słupy (narożniki)
 const colHeight = rigHeight - 1.3;
-const colThickness = 0.3;
-createBox(colThickness, colHeight, colThickness, matDark, -5.2, 1.3 + colHeight/2, 8.5);
-createBox(colThickness, colHeight, colThickness, matDark, 5.2, 1.3 + colHeight/2, 8.5);
-createBox(colThickness, colHeight, colThickness, matDark, -5.2, 1.3 + colHeight/2, -10.5);
-createBox(colThickness, colHeight, colThickness, matDark, 5.2, 1.3 + colHeight/2, -10.5);
+createBox(0.4, colHeight, 0.4, matTruss, -5.3, 1.3 + colHeight/2, 9);
+createBox(0.4, colHeight, 0.4, matTruss, 5.3, 1.3 + colHeight/2, 9);
+createBox(0.4, colHeight, 0.4, matTruss, -5.3, 1.3 + colHeight/2, -11);
+createBox(0.4, colHeight, 0.4, matTruss, 5.3, 1.3 + colHeight/2, -11);
 
-createBox(0.2, colHeight - 2, 0.2, matMetal, -2.5, 1.3 + (colHeight - 2)/2, 8.5);
-createBox(0.2, colHeight - 2, 0.2, matMetal, 2.5, 1.3 + (colHeight - 2)/2, 8.5);
-createBox(0.2, colHeight - 2, 0.2, matMetal, -2.5, 1.3 + (colHeight - 2)/2, -10.5);
-createBox(0.2, colHeight - 2, 0.2, matMetal, 2.5, 1.3 + (colHeight - 2)/2, -10.5);
+// Pośrednie słupy
+createBox(0.25, colHeight - 2, 0.25, matTruss, -2.5, 1.3 + (colHeight - 2)/2, 9);
+createBox(0.25, colHeight - 2, 0.25, matTruss, 2.5, 1.3 + (colHeight - 2)/2, 9);
+createBox(0.25, colHeight - 2, 0.25, matTruss, -2.5, 1.3 + (colHeight - 2)/2, -11);
+createBox(0.25, colHeight - 2, 0.25, matTruss, 2.5, 1.3 + (colHeight - 2)/2, -11);
 
-// FRONT ROOF TRUSS 7.5 m
+// ===== FRONT ROOF TRUSS 7.5 m =====
 const frontRigHeight = 7.5;
-createBox(10.4, 0.7, 4, matTruss, 0, frontRigHeight, -13.5);
+createBox(10.6, 0.8, 4.5, matTruss, 0, frontRigHeight, -13.5);
+createBox(0.3, frontRigHeight - 1.3, 0.3, matTruss, -5.1, 1.3 + (frontRigHeight - 1.3)/2, -14);
+createBox(0.3, frontRigHeight - 1.3, 0.3, matTruss, 5.1, 1.3 + (frontRigHeight - 1.3)/2, -14);
 
-const frontColH = frontRigHeight - 1.3;
-createBox(0.25, frontColH, 0.25, matDark, -4.9, 1.3 + frontColH/2, -13.8);
-createBox(0.25, frontColH, 0.25, matDark, 4.9, 1.3 + frontColH/2, -13.8);
+// ===== SIDE TRUSSES 6 m =====
+createBox(0.7, 0.7, 21, matTruss, -5.7, 6, -1);
+createBox(0.7, 0.7, 21, matTruss, 5.7, 6, -1);
 
-// SIDE TRUSS 6 m
-const sideRigHeight = 6;
-createBox(0.6, 0.6, 20, matTruss, -5.5, sideRigHeight, -1);
-createBox(0.6, 0.6, 20, matTruss, 5.5, sideRigHeight, -1);
-
-// BRACED CONNECTIONS
-createBox(0.15, 0.15, 9, matMetal, -3.5, rigHeight - 1.5, 4.5);
-createBox(0.15, 0.15, 9, matMetal, 3.5, rigHeight - 1.5, 4.5);
-
-// LIGHTING RIGS
-const lightPositions = [
-  [-4, rigHeight - 0.8, 0],
-  [-2, rigHeight - 0.8, 3],
-  [0, rigHeight - 0.8, 6],
-  [2, rigHeight - 0.8, 3],
-  [4, rigHeight - 0.8, 0],
-  [-3, rigHeight - 0.8, -8],
-  [3, rigHeight - 0.8, -8],
+// ===== LIGHTING FIXTURES (REFLEKTORY) =====
+// Pozycje reflektorów na top rig
+const lightRigPositions = [
+  [-4, rigHeight - 1.2, -8],
+  [-2, rigHeight - 1.2, -4],
+  [0, rigHeight - 1.2, 0],
+  [2, rigHeight - 1.2, 4],
+  [4, rigHeight - 1.2, 8],
+  [-3, rigHeight - 1.2, 3],
+  [3, rigHeight - 1.2, 3],
+  [-2.5, rigHeight - 1.2, -6],
+  [2.5, rigHeight - 1.2, -6],
+  [-4.5, rigHeight - 1.2, 6],
+  [4.5, rigHeight - 1.2, 6],
+  [0, rigHeight - 1.2, -10],
 ];
 
-lightPositions.forEach(pos => {
-  createBox(0.35, 0.35, 0.4, matDark, pos[0], pos[1], pos[2]);
+lightRigPositions.forEach((pos, idx) => {
+  // Obudowa reflektora
+  const bodyMat = idx % 2 === 0 ? matReflector : matReflector;
+  createBox(0.35, 0.4, 0.5, bodyMat, pos[0], pos[1], pos[2]);
+  
+  // Soczewka (lens)
+  const lensColor = idx % 3 === 0 ? matLensYellow : (idx % 3 === 1 ? matLensRGB : new THREE.MeshStandardMaterial({color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 0.5}));
+  createCylinder(0.18, 0.18, 0.15, lensColor, pos[0], pos[1] + 0.3, pos[2]);
+  
+  // Światło (point light)
+  const light = new THREE.PointLight(
+    idx % 3 === 0 ? 0xffdd00 : (idx % 3 === 1 ? 0xff00ff : 0x00ffff),
+    0.8,
+    25
+  );
+  light.position.set(pos[0], pos[1] + 0.5, pos[2]);
+  light.castShadow = true;
+  scene.add(light);
 });
 
-// TRIM & RAILS
-createBox(10, 0.15, 0.15, matDark, 0, 1.3 + 0.08, -15.08);
-createBox(10, 0.15, 0.15, matDark, 0, 1.3 + 0.08, 15.08);
-createBox(0.08, 1, 0.08, matMetal, -5.2, 1.3 + 0.5, -14.5);
-createBox(0.08, 1, 0.08, matMetal, 5.2, 1.3 + 0.5, -14.5);
+// ===== FRONT ROOF LIGHTING =====
+const frontLightPositions = [
+  [-3, frontRigHeight + 0.5, -13.5],
+  [0, frontRigHeight + 0.5, -13.5],
+  [3, frontRigHeight + 0.5, -13.5],
+];
 
-// ANIMATION LOOP
+frontLightPositions.forEach((pos, idx) => {
+  createBox(0.3, 0.35, 0.45, matReflector, pos[0], pos[1], pos[2]);
+  const frontLight = new THREE.PointLight(0xff6600, 1, 30);
+  frontLight.position.set(pos[0], pos[1], pos[2]);
+  frontLight.castShadow = true;
+  scene.add(frontLight);
+});
+
+// ===== BARRIERS / BARIERKI =====
+for (let i = 0; i < 8; i++) {
+  const barrierX = -5 + i * 1.5;
+  createBox(1.2, 1, 0.3, matBarrier, barrierX, 0.5, -16);
+}
+
+// ===== SPEAKER SYSTEMS =====
+createBox(0.6, 1.2, 0.6, new THREE.MeshStandardMaterial({color: 0x1a1a1a, metalness: 0.2}), -4.5, 1.3 + 1.8, -14);
+createBox(0.6, 1.2, 0.6, new THREE.MeshStandardMaterial({color: 0x1a1a1a, metalness: 0.2}), 4.5, 1.3 + 1.8, -14);
+
+// ===== STAGE SIDES / DEKORACJA =====
+createBox(0.5, 2, 3, new THREE.MeshStandardMaterial({color: 0x333333, metalness: 0.1}), -5.5, 1.3 + 1, -12);
+createBox(0.5, 2, 3, new THREE.MeshStandardMaterial({color: 0x333333, metalness: 0.1}), 5.5, 1.3 + 1, -12);
+
+// ===== ANIMATION LOOP =====
+let time = 0;
 function animate() {
   requestAnimationFrame(animate);
+  
+  time += 0.01;
+  
+  // Pulsowanie LED
+  scene.children.forEach(child => {
+    if (child.material && child.material.emissiveIntensity !== undefined) {
+      if (child.material.emissive.getHex() !== 0x000000) {
+        child.material.emissiveIntensity = 0.3 + Math.sin(time) * 0.3;
+      }
+    }
+  });
+  
   controls.update();
   renderer.render(scene, camera);
 }
 
 animate();
 
-// WINDOW RESIZE
+// ===== WINDOW RESIZE =====
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
